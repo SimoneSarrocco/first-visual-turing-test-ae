@@ -15,23 +15,13 @@ export default function Home() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6 text-center">
-          <div className="space-y-2">
-            <p className="text-lg">
-              Welcome to our clinical evaluation study for deep learning models used in enhancing low-quality OCT images
-              of the vitreous body.
-            </p>
-          </div>
-
           <div className="bg-muted rounded-lg p-6 text-left">
             <h3 className="font-medium text-lg mb-3">About This Study:</h3>
             <p className="mb-4">
-              We have developed several deep learning models to enhance low-quality vitreous OCT images. Your clinical expertise
-              is invaluable in helping us determine which models produce the most clinically relevant results.
+              We have developed several deep learning models to enhance low-quality vitreous OCT images. Your clinical expertise is invaluable in helping us determine which models produce the most clinically relevant results.
             </p>
             <p className="mb-4">
-              In this test, you will be shown 10 low-quality vitreous OCT images. For each image, you will see 5 enhanced
-              versions created by 5 different AI models. Your task is to rank these enhanced images from best to worst
-              based on your clinical judgment.
+              In this test, you will be shown 10 low-quality vitreous OCT images. For each image, you will see 5 enhanced versions created by 5 different AI models. Your task is to rank these enhanced images from best to worst based on your clinical judgment.
             </p>
             <h4 className="font-medium mt-6 mb-2">Example of a Low-Quality Vitreous OCT Image:</h4>
             <div className="relative mb-4">
