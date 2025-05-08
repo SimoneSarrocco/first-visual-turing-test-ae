@@ -88,7 +88,7 @@ export default function ThankYouPage() {
             <div className="mt-6 p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-900">
               <p className="text-yellow-800 dark:text-yellow-300">
                 It seems your data might not have been saved to our database. You can download your results as a CSV
-                file to ensure your valuable feedback is preserved. Please send the download file to either simone.sarrocco@unibas.ch or philippe.valmaggia@unibas.ch
+                file to ensure your valuable feedback is preserved. Please send the downloaded file to either simone.sarrocco@unibas.ch or philippe.valmaggia@unibas.ch
               </p>
             </div>
           )}

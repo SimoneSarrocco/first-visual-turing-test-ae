@@ -24,7 +24,7 @@ interface ModelImageProps {
   imageNumber: number
   index: number
   rank: number | null
-  onRankChange: (modelIndex: number, rank: number) => void
+  onRankChange: (modelIndex: number, rank: number | null) => void
   onViewFullSize: () => void
   usedRanks: number[]
 }
@@ -40,7 +40,7 @@ const ModelImage = ({ model, imageNumber, index, rank, onRankChange, onViewFullS
         <div className="flex items-center gap-1">
           {[1, 2, 3, 4, 5].map((rankValue) => {
             const isSelected = rank === rankValue
-            const isDisabled = usedRanks.includes(rankValue) && !isSelected
+            const isUsedByOther = usedRanks.includes(rankValue) && !isSelected
 
             return (
               <Button
@@ -49,11 +49,17 @@ const ModelImage = ({ model, imageNumber, index, rank, onRankChange, onViewFullS
                 variant={isSelected ? "default" : "outline"}
                 className={cn(
                   "w-9 h-9 rounded-full p-0",
-                  isDisabled && "opacity-50 cursor-not-allowed",
+                  isUsedByOther && "opacity-50",
                   isSelected && "ring-2 ring-primary ring-offset-2",
                 )}
-                onClick={() => !isDisabled && onRankChange(index, rankValue)}
-                disabled={isDisabled}
+                onClick={() => {
+                  // Toggle rank on/off if clicking the same rank
+                  if (isSelected) {
+                    onRankChange(index, null);
+                  } else {
+                    onRankChange(index, rankValue);
+                  }
+                }}
               >
                 {rankValue}
                 {isSelected && <span className="sr-only">(Selected)</span>}
@@ -119,20 +125,22 @@ export function ImageRanking({ inputImage, models, onSubmit, initialRanking }: I
   const usedRanks = modelRanks.filter((rank) => rank !== null) as number[]
 
   // Handle rank change for a model
-  const handleRankChange = (modelIndex: number, rank: number) => {
+  const handleRankChange = (modelIndex: number, rank: number | null) => {
     const newRanks = [...modelRanks]
 
-    // If this rank is already assigned to another model, clear that assignment
-    const existingIndex = newRanks.findIndex((r) => r === rank)
-    if (existingIndex !== -1 && existingIndex !== modelIndex) {
-      newRanks[existingIndex] = null
+    if (rank !== null) {
+      // If this rank is already assigned to another model, clear that assignment
+      const existingIndex = newRanks.findIndex((r) => r === rank)
+      if (existingIndex !== -1 && existingIndex !== modelIndex) {
+        newRanks[existingIndex] = null
+      }
     }
 
     newRanks[modelIndex] = rank
     setModelRanks(newRanks)
 
     // Enable submit if all models have ranks
-    setIsSubmitEnabled(!newRanks.includes(null))
+    setIsSubmitEnabled(!newRanks.includes(null) && newRanks.filter(r => r !== null).length === models.length)
   }
 
   // Handle submission
@@ -174,7 +182,7 @@ export function ImageRanking({ inputImage, models, onSubmit, initialRanking }: I
 
       <div className="flex justify-between items-center pt-4">
         <div className="text-sm text-muted-foreground">
-          Assign a rank from 1 (best) to 5 (worst) for each enhanced image
+          Assign a rank from 1 (best) to 5 (worst) for each enhanced image. Click a selected rank button again to remove it.
         </div>
         <Button onClick={handleSubmit} disabled={!isSubmitEnabled}>
           Submit Ranking
