@@ -3,6 +3,11 @@ import { createClient as createSupabaseClient } from "@supabase/supabase-js"
 let supabaseInstance: ReturnType<typeof createSupabaseClient> | null = null
 
 export const createClient = () => {
+  // Don't create a client during SSR
+  if (typeof window === "undefined") {
+    throw new Error("Supabase client cannot be created during server-side rendering")
+  }
+
   if (supabaseInstance) {
     return supabaseInstance
   }

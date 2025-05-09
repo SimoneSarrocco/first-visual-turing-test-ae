@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
@@ -19,6 +19,13 @@ export default function PracticePage() {
   const router = useRouter()
   const [hasSubmitted, setHasSubmitted] = useState(false)
   const [viewingInputImage, setViewingInputImage] = useState(false)
+  const [isMounted, setIsMounted] = useState(false)
+  const [viewingImage, setViewingImage] = useState(false) // Fix: Declare viewingImage state
+
+  // Only run client-side code after component is mounted
+  useEffect(() => {
+    setIsMounted(true)
+  }, [])
 
   // Handle practice submission
   const handlePracticeSubmit = (modelOrder: string[]) => {
@@ -29,6 +36,11 @@ export default function PracticePage() {
   const handleStartTest = () => {
     // Navigate programmatically instead of using Link
     router.push("/test")
+  }
+
+  // Don't render anything until client-side
+  if (!isMounted) {
+    return null
   }
 
   return (
@@ -112,12 +124,14 @@ export default function PracticePage() {
         </CardFooter>
       </Card>
 
-      <ImageViewer
-        src={`https://ykpapaa0p8nihfde.public.blob.vercel-storage.com/inputs/${practiceImage}.jpg`}
-        alt="Practice input OCT image (full size)"
-        isOpen={viewingInputImage}
-        onClose={() => setViewingInputImage(false)}
-      />
+      {viewingInputImage && (
+        <ImageViewer
+          src={`https://ykpapaa0p8nihfde.public.blob.vercel-storage.com/inputs/${practiceImage}.jpg`}
+          alt="Practice input OCT image (full size)"
+          isOpen={viewingInputImage}
+          onClose={() => setViewingInputImage(false)}
+        />
+      )}
 
       {/* Custom positioning for the toaster */}
       <div className="fixed top-4 right-4 z-50 max-w-xs">

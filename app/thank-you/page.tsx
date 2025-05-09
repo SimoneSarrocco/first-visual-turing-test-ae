@@ -27,14 +27,21 @@ export default function ThankYouPage() {
   const [hasLocalData, setHasLocalData] = useState(false)
   const [modelRankings, setModelRankings] = useState<ModelRanking[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [isMounted, setIsMounted] = useState(false)
 
   useEffect(() => {
-    // Check if there's any data in session storage
-    const rankings = sessionStorage.getItem("rankings")
-    if (rankings) {
-      setHasLocalData(true)
-      calculateResults(rankings)
+    setIsMounted(true)
+
+    // Only access sessionStorage on the client side
+    if (typeof window !== "undefined") {
+      // Check if there's any data in session storage
+      const rankings = sessionStorage.getItem("rankings")
+      if (rankings) {
+        setHasLocalData(true)
+        calculateResults(rankings)
+      }
     }
+
     setIsLoading(false)
   }, [])
 
@@ -76,6 +83,8 @@ export default function ThankYouPage() {
 
   const handleDownloadData = () => {
     try {
+      if (typeof window === "undefined") return
+
       // Get data from session storage
       const rankings = sessionStorage.getItem("rankings")
       const modelSequences = sessionStorage.getItem("modelSequences")
@@ -130,6 +139,11 @@ export default function ThankYouPage() {
     if (rank <= 3.5) return "text-amber-600"
     if (rank <= 4.5) return "text-orange-600"
     return "text-red-600"
+  }
+
+  // Don't render anything during SSR
+  if (!isMounted) {
+    return null
   }
 
   return (

@@ -21,7 +21,13 @@ export function ImageViewer({ src, alt, isOpen, onClose }: ImageViewerProps) {
   const [position, setPosition] = useState({ x: 0, y: 0 })
   const [isDragging, setIsDragging] = useState(false)
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 })
+  const [isMounted, setIsMounted] = useState(false)
   const imageRef = useRef<HTMLDivElement>(null)
+
+  // Check if we're on client-side
+  useEffect(() => {
+    setIsMounted(true)
+  }, [])
 
   // Reset zoom and position when image changes or dialog opens
   useEffect(() => {
@@ -83,6 +89,11 @@ export function ImageViewer({ src, alt, isOpen, onClose }: ImageViewerProps) {
     // Remove any model information from the alt text
     const cleanedAlt = alt.replace(/^(.*?enhanced image|.*?OCT image)\s*/i, "").trim()
     return cleanedAlt
+  }
+
+  // Don't render anything during SSR
+  if (!isMounted) {
+    return null
   }
 
   return (

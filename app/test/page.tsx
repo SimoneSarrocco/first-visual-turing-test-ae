@@ -77,72 +77,78 @@ export default function TestPage() {
   const [viewingInputImage, setViewingInputImage] = useState(false)
   const [completedQuestions, setCompletedQuestions] = useState<Set<number>>(new Set())
   const [supabaseError, setSupabaseError] = useState<string | null>(null)
+  const [isMounted, setIsMounted] = useState(false)
 
   // Initialize test sequence on component mount
   useEffect(() => {
+    setIsMounted(true)
+
     // Generate a fixed sequence for all users
     const sequence = generateTestSequence()
     setTestSequence(sequence)
 
-    // Get clinician ID and data from session storage
-    const storedClinicianId = sessionStorage.getItem("clinicianId")
-    if (!storedClinicianId) {
-      // Redirect to login if no clinician ID is found
-      router.push("/login")
-      return
-    }
-
-    setClinicianId(storedClinicianId)
-
-    // Collect all clinician data from session storage
-    setClinicianData({
-      id: storedClinicianId,
-      name: sessionStorage.getItem("clinicianName") || "Anonymous",
-      institution: sessionStorage.getItem("clinicianInstitution") || "Not specified",
-      experience: sessionStorage.getItem("clinicianExperience") || "unknown",
-      created_at: sessionStorage.getItem("clinicianCreatedAt") || new Date().toISOString(),
-    })
-
-    // Check if we have any saved rankings in session storage
-    const savedRankings = sessionStorage.getItem("rankings")
-    if (savedRankings) {
-      try {
-        const parsedRankings = JSON.parse(savedRankings)
-        setRankings(parsedRankings)
-
-        // Mark questions as completed
-        const completed = new Set<number>()
-        Object.keys(parsedRankings).forEach((key) => {
-          const index = sequence.findIndex((num) => num === Number(key))
-          if (index !== -1) {
-            completed.add(index)
-          }
-        })
-        setCompletedQuestions(completed)
-      } catch (e) {
-        console.error("Error parsing saved rankings:", e)
+    // Only access sessionStorage on the client side
+    if (typeof window !== "undefined") {
+      // Get clinician ID and data from session storage
+      const storedClinicianId = sessionStorage.getItem("clinicianId")
+      if (!storedClinicianId) {
+        // Redirect to login if no clinician ID is found
+        router.push("/login")
+        return
       }
-    }
 
-    // Check if we have any saved model sequences in session storage
-    const savedModelSequences = sessionStorage.getItem("modelSequences")
-    if (savedModelSequences) {
-      try {
-        setModelSequences(JSON.parse(savedModelSequences))
-      } catch (e) {
-        console.error("Error parsing saved model sequences:", e)
+      setClinicianId(storedClinicianId)
+
+      // Collect all clinician data from session storage
+      setClinicianData({
+        id: storedClinicianId,
+        name: sessionStorage.getItem("clinicianName") || "Anonymous",
+        institution: sessionStorage.getItem("clinicianInstitution") || "Not specified",
+        experience: sessionStorage.getItem("clinicianExperience") || "unknown",
+        created_at: sessionStorage.getItem("clinicianCreatedAt") || new Date().toISOString(),
+      })
+
+      // Check if we have any saved rankings in session storage
+      const savedRankings = sessionStorage.getItem("rankings")
+      if (savedRankings) {
+        try {
+          const parsedRankings = JSON.parse(savedRankings)
+          setRankings(parsedRankings)
+
+          // Mark questions as completed
+          const completed = new Set<number>()
+          Object.keys(parsedRankings).forEach((key) => {
+            const index = sequence.findIndex((num) => num === Number(key))
+            if (index !== -1) {
+              completed.add(index)
+            }
+          })
+          setCompletedQuestions(completed)
+        } catch (e) {
+          console.error("Error parsing saved rankings:", e)
+        }
       }
-    }
 
-    // Check if there was a previous Supabase error
-    const savedError = sessionStorage.getItem("supabaseError")
-    if (savedError) {
-      setSupabaseError(savedError)
-    }
+      // Check if we have any saved model sequences in session storage
+      const savedModelSequences = sessionStorage.getItem("modelSequences")
+      if (savedModelSequences) {
+        try {
+          setModelSequences(JSON.parse(savedModelSequences))
+        } catch (e) {
+          console.error("Error parsing saved model sequences:", e)
+        }
+      }
 
-    // Set a flag in session storage to indicate we've visited the test page
-    // This prevents any redirection loops
-    sessionStorage.setItem("visitedTestPage", "true")
+      // Check if there was a previous Supabase error
+      const savedError = sessionStorage.getItem("supabaseError")
+      if (savedError) {
+        setSupabaseError(savedError)
+      }
+
+      // Set a flag in session storage to indicate we've visited the test page
+      // This prevents any redirection loops
+      sessionStorage.setItem("visitedTestPage", "true")
+    }
 
     setLoading(false)
   }, [router])
@@ -174,8 +180,10 @@ export default function TestPage() {
     setModelSequences(newModelSequences)
 
     // Save to session storage for persistence
-    sessionStorage.setItem("rankings", JSON.stringify(newRankings))
-    sessionStorage.setItem("modelSequences", JSON.stringify(newModelSequences))
+    if (typeof window !== "undefined") {
+      sessionStorage.setItem("rankings", JSON.stringify(newRankings))
+      sessionStorage.setItem("modelSequences", JSON.stringify(newModelSequences))
+    }
 
     // Mark this question as completed
     const newCompleted = new Set(completedQuestions)
@@ -184,7 +192,9 @@ export default function TestPage() {
 
     if (currentImageIndex < testSequence.length - 1) {
       setCurrentImageIndex(currentImageIndex + 1)
-      window.scrollTo(0, 0)
+      if (typeof window !== "undefined") {
+        window.scrollTo(0, 0)
+      }
     } else {
       setShowCompletionDialog(true)
     }
@@ -242,10 +252,12 @@ export default function TestPage() {
       }
 
       // Clear session storage after successful submission
-      sessionStorage.removeItem("rankings")
-      sessionStorage.removeItem("modelSequences")
-      sessionStorage.removeItem("supabaseError")
-      sessionStorage.removeItem("visitedTestPage")
+      if (typeof window !== "undefined") {
+        sessionStorage.removeItem("rankings")
+        sessionStorage.removeItem("modelSequences")
+        sessionStorage.removeItem("supabaseError")
+        sessionStorage.removeItem("visitedTestPage")
+      }
 
       router.push("/thank-you")
     } catch (error: any) {
@@ -253,7 +265,9 @@ export default function TestPage() {
 
       // Store the error message in session storage
       const errorMessage = error?.message || "Unknown error occurred"
-      sessionStorage.setItem("supabaseError", errorMessage)
+      if (typeof window !== "undefined") {
+        sessionStorage.setItem("supabaseError", errorMessage)
+      }
       setSupabaseError(errorMessage)
 
       // Show export dialog instead of error toast
@@ -296,6 +310,11 @@ export default function TestPage() {
         variant: "destructive",
       })
     }
+  }
+
+  // Don't render anything during SSR
+  if (!isMounted) {
+    return null
   }
 
   if (loading) {

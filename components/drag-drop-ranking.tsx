@@ -176,6 +176,10 @@ export function DragDropRanking({ inputImage, models, onSubmit, initialRanking }
   const [imageLabels, setImageLabels] = useState<Record<string, string>>({})
   // State for tap-to-swap functionality
   const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null)
+  // State to track if component is mounted (client-side)
+  const [isMounted, setIsMounted] = useState(false)
+  // State to track if we're on mobile
+  const [isMobile, setIsMobile] = useState(false)
 
   // Initialize sensors for drag and drop
   const sensors = useSensors(
@@ -188,6 +192,27 @@ export function DragDropRanking({ inputImage, models, onSubmit, initialRanking }
       coordinateGetter: sortableKeyboardCoordinates,
     }),
   )
+
+  // Check if we're on client-side and set up window resize listener
+  useEffect(() => {
+    setIsMounted(true)
+
+    // Check if we're on mobile
+    const checkIfMobile = () => {
+      setIsMobile(window.innerWidth <= 768)
+    }
+
+    // Initial check
+    checkIfMobile()
+
+    // Set up listener for window resize
+    window.addEventListener("resize", checkIfMobile)
+
+    // Clean up
+    return () => {
+      window.removeEventListener("resize", checkIfMobile)
+    }
+  }, [])
 
   // Initialize or randomize models when input image changes
   useEffect(() => {
@@ -258,6 +283,11 @@ export function DragDropRanking({ inputImage, models, onSubmit, initialRanking }
     })
   }
 
+  // Don't render anything during SSR
+  if (!isMounted) {
+    return <div className="min-h-[400px] bg-gray-50 rounded-md flex items-center justify-center">Loading...</div>
+  }
+
   return (
     <div className="space-y-4">
       <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
@@ -289,7 +319,7 @@ export function DragDropRanking({ inputImage, models, onSubmit, initialRanking }
 
       <div className="flex justify-between items-center pt-2">
         <div className="text-sm text-muted-foreground">
-          {window.innerWidth <= 768
+          {isMobile
             ? "Tap images to select and swap positions"
             : "Drag to reorder images from best (left) to worst (right)"}
         </div>
