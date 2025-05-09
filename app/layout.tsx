@@ -20,7 +20,7 @@ export default function RootLayout({
     <html lang="en">
       <body className={inter.className}>
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
-          <main className="min-h-screen bg-muted/40 flex flex-col">
+          <main className="min-h-screen flex flex-col">
             <div className="flex-1">{children}</div>
             <footer className="py-6 text-center text-sm text-muted-foreground">
               © {new Date().getFullYear()} OCT Image Enhancement Evaluation

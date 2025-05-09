@@ -49,6 +49,12 @@ export function ImageViewer({ src, alt, isOpen, onClose }: ImageViewerProps) {
   }
 
   const handleMouseDown = (e: React.MouseEvent) => {
+    // Handle double click to close the viewer
+    if (e.detail === 2) {
+      onClose()
+      return
+    }
+
     if (scale > 1) {
       setIsDragging(true)
       setDragStart({ x: e.clientX - position.x, y: e.clientY - position.y })
@@ -139,6 +145,7 @@ export function ImageViewer({ src, alt, isOpen, onClose }: ImageViewerProps) {
             style={{
               transform: `translate(-50%, -50%) translate(${position.x}px, ${position.y}px) scale(${scale})`,
             }}
+            onDoubleClick={onClose}
           >
             <Image
               src={src || "/placeholder.svg"}

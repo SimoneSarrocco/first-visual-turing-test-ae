@@ -121,19 +121,36 @@ export default function AdminPage() {
 
     // Create an object to store model rankings
     const modelStats: Record<string, { totalRank: number; count: number }> = {}
+    const modelStatsByExperience: Record<string, Record<string, { totalRank: number; count: number }>> = {
+      less_than_5: {},
+      five_or_more: {},
+    }
     const models = ["DDPM", "VQGAN", "UNET", "Pix2Pix", "BBDM"]
 
     models.forEach((model) => {
       modelStats[model] = { totalRank: 0, count: 0 }
+      modelStatsByExperience.less_than_5[model] = { totalRank: 0, count: 0 }
+      modelStatsByExperience.five_or_more[model] = { totalRank: 0, count: 0 }
     })
 
     // Calculate total rankings for each model
     rankings.forEach((ranking) => {
+      // Find the clinician to get their experience level
+      const clinician = clinicians.find((c) => c.id === ranking.clinician_id)
+      const experienceLevel = clinician?.experience || "unknown"
+
       ranking.model_rankings.forEach((model: string, index: number) => {
         if (modelStats[model]) {
           // Add rank position (0-indexed, so add 1)
           modelStats[model].totalRank += index + 1
           modelStats[model].count += 1
+
+          // Add to experience-specific stats if we know the experience
+          if (experienceLevel === "less_than_5" || experienceLevel === "5_or_more") {
+            const expKey = experienceLevel === "5_or_more" ? "five_or_more" : "less_than_5"
+            modelStatsByExperience[expKey][model].totalRank += index + 1
+            modelStatsByExperience[expKey][model].count += 1
+          }
         }
       })
     })
@@ -145,14 +162,54 @@ export default function AdminPage() {
         modelStats[model].count > 0 ? (modelStats[model].totalRank / modelStats[model].count).toFixed(2) : "N/A",
     }))
 
+    // Calculate average rank by experience
+    const averageRanksByExperience = {
+      less_than_5: models.map((model) => ({
+        model,
+        averageRank:
+          modelStatsByExperience.less_than_5[model].count > 0
+            ? (
+                modelStatsByExperience.less_than_5[model].totalRank / modelStatsByExperience.less_than_5[model].count
+              ).toFixed(2)
+            : "N/A",
+      })),
+      five_or_more: models.map((model) => ({
+        model,
+        averageRank:
+          modelStatsByExperience.five_or_more[model].count > 0
+            ? (
+                modelStatsByExperience.five_or_more[model].totalRank / modelStatsByExperience.five_or_more[model].count
+              ).toFixed(2)
+            : "N/A",
+      })),
+    }
+
     // Sort by average rank (lower is better)
-    return averageRanks.sort((a, b) =>
-      a.averageRank === "N/A"
-        ? 1
-        : b.averageRank === "N/A"
-          ? -1
-          : Number.parseFloat(a.averageRank) - Number.parseFloat(b.averageRank),
-    )
+    return {
+      overall: averageRanks.sort((a, b) =>
+        a.averageRank === "N/A"
+          ? 1
+          : b.averageRank === "N/A"
+            ? -1
+            : Number.parseFloat(a.averageRank) - Number.parseFloat(b.averageRank),
+      ),
+      byExperience: {
+        less_than_5: averageRanksByExperience.less_than_5.sort((a, b) =>
+          a.averageRank === "N/A"
+            ? 1
+            : b.averageRank === "N/A"
+              ? -1
+              : Number.parseFloat(a.averageRank) - Number.parseFloat(b.averageRank),
+        ),
+        five_or_more: averageRanksByExperience.five_or_more.sort((a, b) =>
+          a.averageRank === "N/A"
+            ? 1
+            : b.averageRank === "N/A"
+              ? -1
+              : Number.parseFloat(a.averageRank) - Number.parseFloat(b.averageRank),
+        ),
+      },
+    }
   }
 
   // Compute experience statistics
@@ -232,9 +289,30 @@ export default function AdminPage() {
                       {statistics ? (
                         <div>
                           <p className="mb-2 text-sm text-muted-foreground">Average Ranking (lower is better)</p>
+                          <h4 className="font-semibold mt-3 mb-1">Overall</h4>
                           <ul className="space-y-1">
-                            {statistics.map((stat, index) => (
+                            {statistics.overall.map((stat, index) => (
                               <li key={index} className="flex justify-between">
+                                <span>{stat.model}:</span>
+                                <span className="font-medium">{stat.averageRank}</span>
+                              </li>
+                            ))}
+                          </ul>
+
+                          <h4 className="font-semibold mt-4 mb-1">Clinicians with &lt;5 years experience</h4>
+                          <ul className="space-y-1">
+                            {statistics.byExperience.less_than_5.map((stat, index) => (
+                              <li key={`less_${index}`} className="flex justify-between">
+                                <span>{stat.model}:</span>
+                                <span className="font-medium">{stat.averageRank}</span>
+                              </li>
+                            ))}
+                          </ul>
+
+                          <h4 className="font-semibold mt-4 mb-1">Clinicians with 5+ years experience</h4>
+                          <ul className="space-y-1">
+                            {statistics.byExperience.five_or_more.map((stat, index) => (
+                              <li key={`more_${index}`} className="flex justify-between">
                                 <span>{stat.model}:</span>
                                 <span className="font-medium">{stat.averageRank}</span>
                               </li>

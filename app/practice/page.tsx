@@ -1,20 +1,22 @@
 "use client"
 
 import { useState } from "react"
-import Link from "next/link"
+import { useRouter } from "next/navigation"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { ImageRanking } from "@/components/image-ranking"
+import { DragDropRanking } from "@/components/drag-drop-ranking"
 import { ImageViewer } from "@/components/image-viewer"
 import { ZoomIn, AlertCircle, CheckCircle2 } from "lucide-react"
+import { Toaster } from "@/components/ui/toaster"
 
 // Define model types for practice
 const models = ["DDPM", "VQGAN", "UNET", "Pix2Pix", "BBDM"]
 const practiceImage = 1 // Use image #1 for practice
 
 export default function PracticePage() {
+  const router = useRouter()
   const [hasSubmitted, setHasSubmitted] = useState(false)
   const [viewingInputImage, setViewingInputImage] = useState(false)
 
@@ -23,9 +25,15 @@ export default function PracticePage() {
     setHasSubmitted(true)
   }
 
+  // Handle direct navigation to test
+  const handleStartTest = () => {
+    // Navigate programmatically instead of using Link
+    router.push("/test")
+  }
+
   return (
-    <div className="w-full px-4 py-6">
-      <Card className="mb-6">
+    <div className="w-full px-4 py-4">
+      <Card className="mb-4">
         <CardHeader>
           <CardTitle className="flex items-center justify-between">
             <span>Practice Question</span>
@@ -35,7 +43,7 @@ export default function PracticePage() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <Alert className="mb-6">
+          <Alert className="mb-4">
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>
               This is a practice question. Your response will not be recorded. Try ranking the images to get familiar
@@ -43,14 +51,14 @@ export default function PracticePage() {
             </AlertDescription>
           </Alert>
 
-          <div className="flex flex-col lg:flex-row gap-6">
-            <div className="lg:w-1/3 lg:sticky lg:top-4 lg:self-start">
-              <h3 className="font-medium mb-2">Input Low-Quality Vitreous OCT Image:</h3>
-              <div className="relative group">
-                <div className="relative w-full" style={{ aspectRatio: "768/496" }}>
+          <div className="space-y-4">
+            <div>
+              <h3 className="font-medium mb-2">Input Low-Quality OCT Image:</h3>
+              <div className="relative group bg-white border border-gray-200 rounded-md overflow-hidden">
+                <div className="relative w-full max-w-3xl mx-auto" style={{ aspectRatio: "768/496", height: "200px" }}>
                   <Image
                     src={`https://ykpapaa0p8nihfde.public.blob.vercel-storage.com/inputs/${practiceImage}.jpg`}
-                    alt="Practice Input Vitreous OCT Image"
+                    alt="Practice input OCT image"
                     fill
                     className="object-contain"
                     onDoubleClick={() => setViewingInputImage(true)}
@@ -67,25 +75,9 @@ export default function PracticePage() {
               </div>
             </div>
 
-            <div className="lg:w-2/3">
-              <h3 className="font-medium mb-2">Enhanced Images - Rank from 1 (best) to 5 (worst):</h3>
-              <div className="mb-4">
-                <p className="text-sm text-muted-foreground mb-2">
-                  <strong>Instructions:</strong> Use the buttons at the top of each image to assign a rank from 1 (best) to 5 (worst) for
-                  each enhanced image.
-                </p>
-                <ul className="list-disc list-inside text-sm text-muted-foreground space-y-1 ml-2">
-                  <li>Click the zoom icon or double-click any image to view it in full size</li>
-                  <li>Use the zoom controls to examine image details</li>
-                  <li>Drag when zoomed in to pan around the image</li>
-                  <li>Each image must have a unique rank (1-5)</li>
-                </ul>
-                <p className="text-sm text-muted-foreground mb-2">
-                
-                <strong>Important</strong>: The name of each image (e.g. Image A) is not referring to a specific AI model, but it is just a fake name given to highlight the fact that each image is different from all the others shown in the same question.
-                </p>
-              </div>
-              <ImageRanking
+            <div>
+              <h3 className="font-medium mb-2">Enhanced Images - Drag to Rank (Best to Worst):</h3>
+              <DragDropRanking
                 inputImage={practiceImage}
                 models={models}
                 onSubmit={handlePracticeSubmit}
@@ -95,7 +87,7 @@ export default function PracticePage() {
           </div>
 
           {hasSubmitted && (
-            <div className="mt-6 p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-900">
+            <div className="mt-4 p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-900">
               <div className="flex items-start">
                 <CheckCircle2 className="h-5 w-5 text-green-600 dark:text-green-400 mt-0.5 mr-2" />
                 <div>
@@ -111,9 +103,7 @@ export default function PracticePage() {
         </CardContent>
         <CardFooter className="flex justify-end">
           {hasSubmitted ? (
-            <Link href="/test">
-              <Button>Start Actual Test</Button>
-            </Link>
+            <Button onClick={handleStartTest}>Start Actual Test</Button>
           ) : (
             <div className="text-sm text-muted-foreground">
               Please rank all images and click "Submit Ranking" to continue
@@ -124,10 +114,15 @@ export default function PracticePage() {
 
       <ImageViewer
         src={`https://ykpapaa0p8nihfde.public.blob.vercel-storage.com/inputs/${practiceImage}.jpg`}
-        alt="Practice Input Vitreous OCT Image (full size)"
+        alt="Practice input OCT image (full size)"
         isOpen={viewingInputImage}
         onClose={() => setViewingInputImage(false)}
       />
+
+      {/* Custom positioning for the toaster */}
+      <div className="fixed top-4 right-4 z-50 max-w-xs">
+        <Toaster />
+      </div>
     </div>
   )
 }

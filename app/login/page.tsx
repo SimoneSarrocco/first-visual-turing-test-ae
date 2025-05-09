@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { toast } from "@/components/ui/use-toast"
+import { toast } from "@/components/ui/toast"
 import { Toaster } from "@/components/ui/toaster"
 
 export default function LoginPage() {
@@ -59,7 +59,7 @@ export default function LoginPage() {
 
   return (
     <div className="container max-w-md mx-auto py-10 px-4">
-      <Card>
+      <Card className="card-gradient">
         <CardHeader>
           <CardTitle>Clinician Information</CardTitle>
           <CardDescription>Please provide some information before starting the evaluation.</CardDescription>
@@ -104,7 +104,9 @@ export default function LoginPage() {
           </form>
         </CardContent>
       </Card>
-      <Toaster />
+      <div className="fixed top-4 right-4 z-50 max-w-xs">
+        <Toaster />
+      </div>
     </div>
   )
 }

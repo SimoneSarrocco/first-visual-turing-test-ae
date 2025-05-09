@@ -14,12 +14,12 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Progress } from "@/components/ui/progress"
-import { toast } from "@/components/ui/use-toast"
+import { toast } from "@/components/ui/toast"
 import { Toaster } from "@/components/ui/toaster"
-import { ImageRanking } from "@/components/image-ranking"
+import { DragDropRanking } from "@/components/drag-drop-ranking"
 import { createClient } from "@/lib/supabase-client"
 import { ImageViewer } from "@/components/image-viewer"
-import { ZoomIn, Download, AlertCircle } from "lucide-react"
+import { ZoomIn, Download, AlertCircle, Mail } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { formatRankingsForExport, createCSV, downloadCSV } from "@/lib/export-utils"
 
@@ -140,6 +140,10 @@ export default function TestPage() {
       setSupabaseError(savedError)
     }
 
+    // Set a flag in session storage to indicate we've visited the test page
+    // This prevents any redirection loops
+    sessionStorage.setItem("visitedTestPage", "true")
+
     setLoading(false)
   }, [router])
 
@@ -185,9 +189,11 @@ export default function TestPage() {
       setShowCompletionDialog(true)
     }
 
+    // Show toast with fixed positioning
     toast({
       title: "Ranking saved",
       description: "Your ranking for this image has been saved",
+      duration: 2000, // Shorter duration
     })
   }
 
@@ -239,6 +245,7 @@ export default function TestPage() {
       sessionStorage.removeItem("rankings")
       sessionStorage.removeItem("modelSequences")
       sessionStorage.removeItem("supabaseError")
+      sessionStorage.removeItem("visitedTestPage")
 
       router.push("/thank-you")
     } catch (error: any) {
@@ -303,8 +310,8 @@ export default function TestPage() {
   }
 
   return (
-    <div className="w-full px-4 py-6">
-      <Card className="mb-6">
+    <div className="w-full px-4 py-4">
+      <Card className="mb-4">
         <CardHeader className="pb-2">
           <CardTitle className="flex items-center justify-between">
             <span>
@@ -344,16 +351,16 @@ export default function TestPage() {
             ))}
           </div>
 
-          <div className="flex flex-col lg:flex-row gap-6">
-            {/* Input image section - fixed on the left for large screens */}
-            <div className="lg:w-1/3 lg:sticky lg:top-4 lg:self-start">
+          <div className="space-y-4">
+            {/* Input image section */}
+            <div>
               <h3 className="font-medium mb-2">Input Low-Quality OCT Image:</h3>
-              <div className="relative group">
-                <div className="relative w-full" style={{ aspectRatio: "768/496" }}>
+              <div className="relative group bg-white border border-gray-200 rounded-md overflow-hidden">
+                <div className="relative w-full max-w-3xl mx-auto" style={{ aspectRatio: "768/496", height: "200px" }}>
                   {currentImage && (
                     <Image
                       src={`https://ykpapaa0p8nihfde.public.blob.vercel-storage.com/inputs/${currentImage}.jpg`}
-                      alt={`Input Vitreous OCT Image ${currentImage}`}
+                      alt={`Input OCT image ${currentImage}`}
                       fill
                       className="object-contain"
                       onDoubleClick={() => setViewingInputImage(true)}
@@ -371,11 +378,11 @@ export default function TestPage() {
               </div>
             </div>
 
-            {/* Enhanced images section - takes remaining space */}
-            <div className="lg:w-2/3">
-              <h3 className="font-medium mb-4">Enhanced Images - Rank from 1 (best) to 5 (worst):</h3>
+            {/* Enhanced images section */}
+            <div>
+              <h3 className="font-medium mb-2">Enhanced Images - Drag to Rank (Best to Worst):</h3>
               {currentImage && (
-                <ImageRanking
+                <DragDropRanking
                   inputImage={currentImage}
                   models={models}
                   onSubmit={handleRankingSubmit}
@@ -425,6 +432,15 @@ export default function TestPage() {
             <p className="mb-4">
               You can export your results as a CSV file, which you can then send to the researchers or upload later.
             </p>
+            <p className="mb-4">Please send the downloaded CSV file to one of these email addresses:</p>
+            <div className="flex flex-col gap-1 mb-4">
+              <a href="mailto:simone.sarrocco@unibas.ch" className="text-blue-600 hover:underline flex items-center">
+                <Mail className="h-4 w-4 mr-1" /> simone.sarrocco@unibas.ch
+              </a>
+              <a href="mailto:philippe.valmaggia@unibas.ch" className="text-blue-600 hover:underline flex items-center">
+                <Mail className="h-4 w-4 mr-1" /> philippe.valmaggia@unibas.ch
+              </a>
+            </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowExportDialog(false)}>
@@ -441,13 +457,16 @@ export default function TestPage() {
       {currentImage && (
         <ImageViewer
           src={`https://ykpapaa0p8nihfde.public.blob.vercel-storage.com/inputs/${currentImage}.jpg`}
-          alt={`Input Vitreous OCT Image ${currentImage} (full size)`}
+          alt={`Input OCT image ${currentImage} (full size)`}
           isOpen={viewingInputImage}
           onClose={() => setViewingInputImage(false)}
         />
       )}
 
-      <Toaster />
+      {/* Custom positioning for the toaster */}
+      <div className="fixed top-4 right-4 z-50 max-w-xs">
+        <Toaster />
+      </div>
     </div>
   )
 }
