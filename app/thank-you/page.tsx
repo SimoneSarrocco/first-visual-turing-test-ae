@@ -6,7 +6,6 @@ import { CheckCircle, Download, Mail } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { formatRankingsForExport, createCSV, downloadCSV } from "@/lib/export-utils"
-import { Progress } from "@/components/ui/progress"
 
 // Define full model names with abbreviations
 const MODEL_FULL_NAMES: Record<string, string> = {
@@ -141,6 +140,15 @@ export default function ThankYouPage() {
     return "text-red-600"
   }
 
+  // Helper function to get background color class based on rank
+  const getBackgroundColorClass = (rank: number): string => {
+    if (rank <= 1.5) return "bg-emerald-100"
+    if (rank <= 2.5) return "bg-green-100"
+    if (rank <= 3.5) return "bg-amber-100"
+    if (rank <= 4.5) return "bg-orange-100"
+    return "bg-red-100"
+  }
+
   // Don't render anything during SSR
   if (!isMounted) {
     return null
@@ -164,7 +172,7 @@ export default function ThankYouPage() {
             Your expert feedback will help us improve deep learning models for OCT image enhancement.
           </p>
 
-          {/* Results Summary */}
+          {/* Results Summary - Always show if we have rankings */}
           {!isLoading && modelRankings.length > 0 && (
             <div className="mt-8">
               <h3 className="text-lg font-medium mb-2">Your Evaluation Results</h3>
@@ -185,21 +193,18 @@ export default function ThankYouPage() {
                         {model.averageRank.toFixed(2)}
                       </span>
                     </div>
-                    <Progress
-                      value={(5 - model.averageRank) * 20}
-                      className={`h-2 ${
-                        model.averageRank <= 1.5
-                          ? "bg-emerald-100"
-                          : model.averageRank <= 2.5
-                            ? "bg-green-100"
-                            : model.averageRank <= 3.5
-                              ? "bg-amber-100"
-                              : model.averageRank <= 4.5
-                                ? "bg-orange-100"
-                                : "bg-red-100"
-                      }`}
-                    />
-                    <div className="text-xs text-muted-foreground mt-1">Average rank (lower is better)</div>
+                    {/* More intuitive progress bars - shorter is better (since lower rank is better) */}
+                    <div className="relative h-2 rounded-full overflow-hidden bg-gray-200">
+                      <div
+                        className={`absolute top-0 right-0 h-full ${getBackgroundColorClass(model.averageRank)}`}
+                        style={{ width: `${model.averageRank * 20}%` }}
+                      ></div>
+                    </div>
+                    <div className="text-xs text-muted-foreground mt-1 flex justify-between">
+                      <span>Better</span>
+                      <span>Average rank: {model.averageRank.toFixed(2)} (lower is better)</span>
+                      <span>Worse</span>
+                    </div>
                   </div>
                 ))}
               </div>

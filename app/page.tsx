@@ -28,8 +28,8 @@ export default function Home() {
             </p>
             <h4 className="font-medium mt-6 mb-2">Example of a Low-Quality Vitreous OCT Image:</h4>
             <div className="flex justify-center mb-4">
-              {/* Smaller example image */}
-              <div className="relative" style={{ width: "250px", height: "160px" }}>
+              {/* Slightly bigger example image */}
+              <div className="relative" style={{ width: "350px", height: "225px" }}>
                 <Image
                   src="https://ykpapaa0p8nihfde.public.blob.vercel-storage.com/inputs/1.jpg"
                   alt="Example of a low-quality vitreous OCT image"

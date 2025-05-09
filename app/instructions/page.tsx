@@ -109,7 +109,7 @@ export default function InstructionsPage() {
                 </div>
               </div>
               <div>
-                <p className="mb-2 font-medium">Enhanced Images (to be ranked):</p>
+                <p className="mb-2 font-medium">Enhanced Image (to be ranked):</p>
                 <div className="relative group">
                   <div className="relative w-full" style={{ aspectRatio: "768/496", height: "200px" }}>
                     <Image
