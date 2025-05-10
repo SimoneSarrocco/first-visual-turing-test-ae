@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import Link from "next/link"
-import { CheckCircle, Download, Mail, Star, Trophy, Medal } from "lucide-react"
+import { CheckCircle, Download, Mail, Trophy, Medal } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { formatRankingsForExport, createCSV, downloadCSV } from "@/lib/export-utils"
@@ -34,11 +34,15 @@ export default function ThankYouPage() {
 
     // Only access sessionStorage on the client side
     if (typeof window !== "undefined") {
-      // Check if there's any data in session storage
-      const rankings = sessionStorage.getItem("rankings")
-      if (rankings) {
-        setHasLocalData(true)
-        calculateResults(rankings)
+      try {
+        // Check if there's any data in session storage
+        const rankings = sessionStorage.getItem("rankings")
+        if (rankings) {
+          setHasLocalData(true)
+          calculateResults(rankings)
+        }
+      } catch (error) {
+        console.error("Error accessing session storage:", error)
       }
     }
 
@@ -188,7 +192,7 @@ export default function ThankYouPage() {
           </p>
 
           {/* Results Summary - Always show if we have rankings */}
-          {!isLoading && modelRankings.length > 0 && (
+          {!isLoading && modelRankings.length > 0 ? (
             <div className="mt-8 bg-gray-50 p-4 rounded-lg border border-gray-200">
               <h3 className="text-lg font-medium mb-2">Your Evaluation Results</h3>
               <p className="text-sm text-muted-foreground mb-4">
@@ -235,18 +239,6 @@ export default function ThankYouPage() {
                           <div>Best (1.0)</div>
                           <div>Worst (5.0)</div>
                         </div>
-
-                        <div className="flex items-center mt-3">
-                          <div className="text-sm font-medium mr-3 w-16">Rating:</div>
-                          <div className="flex">
-                            {[1, 2, 3, 4, 5].map((star) => (
-                              <Star
-                                key={star}
-                                className={`h-4 w-4 ${star <= 6 - Math.round(model.averageRank) ? "text-yellow-400 fill-yellow-400" : "text-gray-300"}`}
-                              />
-                            ))}
-                          </div>
-                        </div>
                       </div>
                     </div>
                   </div>
@@ -257,6 +249,12 @@ export default function ThankYouPage() {
                 <p>Based on your {modelRankings[0].count} evaluations</p>
                 <p className="mt-1 font-medium">Lower rank numbers indicate better performance</p>
               </div>
+            </div>
+          ) : (
+            <div className="mt-8 bg-gray-50 p-4 rounded-lg border border-gray-200">
+              <p className="text-sm text-muted-foreground">
+                No evaluation data found. If you completed the evaluation, this might be due to a technical issue.
+              </p>
             </div>
           )}
 
