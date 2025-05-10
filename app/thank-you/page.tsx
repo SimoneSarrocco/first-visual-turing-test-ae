@@ -2,10 +2,11 @@
 
 import { useEffect, useState } from "react"
 import Link from "next/link"
-import { CheckCircle, Download, Mail } from "lucide-react"
+import { CheckCircle, Download, Mail, Star, Trophy, Medal } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { formatRankingsForExport, createCSV, downloadCSV } from "@/lib/export-utils"
+import { Badge } from "@/components/ui/badge"
 
 // Define full model names with abbreviations
 const MODEL_FULL_NAMES: Record<string, string> = {
@@ -131,22 +132,36 @@ export default function ThankYouPage() {
     }
   }
 
-  // Helper function to get color class based on rank
-  const getRankColorClass = (rank: number): string => {
-    if (rank <= 1.5) return "text-emerald-600"
-    if (rank <= 2.5) return "text-green-600"
-    if (rank <= 3.5) return "text-amber-600"
-    if (rank <= 4.5) return "text-orange-600"
-    return "text-red-600"
+  // Get medal icon based on position
+  const getMedalIcon = (position: number) => {
+    switch (position) {
+      case 0:
+        return <Trophy className="h-5 w-5 text-yellow-500" />
+      case 1:
+        return <Medal className="h-5 w-5 text-gray-400" />
+      case 2:
+        return <Medal className="h-5 w-5 text-amber-700" />
+      default:
+        return null
+    }
   }
 
-  // Helper function to get background color class based on rank
-  const getBackgroundColorClass = (rank: number): string => {
-    if (rank <= 1.5) return "bg-emerald-100"
-    if (rank <= 2.5) return "bg-green-100"
-    if (rank <= 3.5) return "bg-amber-100"
-    if (rank <= 4.5) return "bg-orange-100"
-    return "bg-red-100"
+  // Get rank color based on average rank
+  const getRankColor = (rank: number): string => {
+    if (rank <= 1.5) return "bg-emerald-500"
+    if (rank <= 2.5) return "bg-green-500"
+    if (rank <= 3.5) return "bg-amber-500"
+    if (rank <= 4.5) return "bg-orange-500"
+    return "bg-red-500"
+  }
+
+  // Get text color based on average rank
+  const getTextColor = (rank: number): string => {
+    if (rank <= 1.5) return "text-emerald-700"
+    if (rank <= 2.5) return "text-green-700"
+    if (rank <= 3.5) return "text-amber-700"
+    if (rank <= 4.5) return "text-orange-700"
+    return "text-red-700"
   }
 
   // Don't render anything during SSR
@@ -174,42 +189,73 @@ export default function ThankYouPage() {
 
           {/* Results Summary - Always show if we have rankings */}
           {!isLoading && modelRankings.length > 0 && (
-            <div className="mt-8">
+            <div className="mt-8 bg-gray-50 p-4 rounded-lg border border-gray-200">
               <h3 className="text-lg font-medium mb-2">Your Evaluation Results</h3>
               <p className="text-sm text-muted-foreground mb-4">
                 Based on your rankings, here's how you rated the different deep learning models:
               </p>
-              <div className="space-y-4">
+
+              <div className="space-y-6 mt-6">
                 {modelRankings.map((model, index) => (
-                  <div key={model.model} className="text-left">
-                    <div className="flex justify-between mb-1">
-                      <div className="font-medium">
-                        <span title={MODEL_FULL_NAMES[model.model]}>{model.model}</span>
-                        <span className="text-xs text-muted-foreground ml-1 hidden md:inline">
-                          ({MODEL_FULL_NAMES[model.model]})
-                        </span>
+                  <div key={model.model} className="relative">
+                    {/* Position badge */}
+                    <div className="absolute -left-2 -top-2 z-10">
+                      {index < 3 && <div className="rounded-full bg-white p-1 shadow-md">{getMedalIcon(index)}</div>}
+                    </div>
+
+                    <div className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden">
+                      <div className="p-3 flex justify-between items-center border-b border-gray-100">
+                        <div className="font-medium flex items-center">
+                          <span className="mr-2">{index + 1}.</span>
+                          <span>{model.model}</span>
+                          <Badge variant="outline" className="ml-2 text-xs">
+                            {MODEL_FULL_NAMES[model.model]}
+                          </Badge>
+                        </div>
+                        <div className={`font-bold text-lg ${getTextColor(model.averageRank)}`}>
+                          {model.averageRank.toFixed(2)}
+                        </div>
                       </div>
-                      <span className={`font-bold ${getRankColorClass(model.averageRank)}`}>
-                        {model.averageRank.toFixed(2)}
-                      </span>
-                    </div>
-                    {/* More intuitive progress bars - shorter is better (since lower rank is better) */}
-                    <div className="relative h-2 rounded-full overflow-hidden bg-gray-200">
-                      <div
-                        className={`absolute top-0 right-0 h-full ${getBackgroundColorClass(model.averageRank)}`}
-                        style={{ width: `${model.averageRank * 20}%` }}
-                      ></div>
-                    </div>
-                    <div className="text-xs text-muted-foreground mt-1 flex justify-between">
-                      <span>Better</span>
-                      <span>Average rank: {model.averageRank.toFixed(2)} (lower is better)</span>
-                      <span>Worse</span>
+
+                      <div className="p-3">
+                        <div className="flex items-center">
+                          <div className="text-sm font-medium mr-3 w-16">Rank:</div>
+                          <div className="flex-1 bg-gray-200 h-6 rounded-full overflow-hidden">
+                            {/* Rank bar - width is percentage of max rank (5) */}
+                            <div
+                              className={`h-full ${getRankColor(model.averageRank)} flex items-center justify-center text-white text-xs font-bold`}
+                              style={{ width: `${(model.averageRank / 5) * 100}%` }}
+                            >
+                              {model.averageRank.toFixed(1)}
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="flex justify-between text-xs text-gray-500 mt-1">
+                          <div>Best (1.0)</div>
+                          <div>Worst (5.0)</div>
+                        </div>
+
+                        <div className="flex items-center mt-3">
+                          <div className="text-sm font-medium mr-3 w-16">Rating:</div>
+                          <div className="flex">
+                            {[1, 2, 3, 4, 5].map((star) => (
+                              <Star
+                                key={star}
+                                className={`h-4 w-4 ${star <= 6 - Math.round(model.averageRank) ? "text-yellow-400 fill-yellow-400" : "text-gray-300"}`}
+                              />
+                            ))}
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 ))}
               </div>
-              <div className="text-sm text-muted-foreground mt-4">
-                Based on your {modelRankings[0].count} evaluations
+
+              <div className="text-sm text-muted-foreground mt-4 text-center">
+                <p>Based on your {modelRankings[0].count} evaluations</p>
+                <p className="mt-1 font-medium">Lower rank numbers indicate better performance</p>
               </div>
             </div>
           )}
