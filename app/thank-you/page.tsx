@@ -25,6 +25,7 @@ interface ModelRanking {
 
 export default function ThankYouPage() {
   const [hasLocalData, setHasLocalData] = useState(false)
+  const [saveToSupabaseFailed, setSaveToSupabaseFailed] = useState(false)
   const [modelRankings, setModelRankings] = useState<ModelRanking[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [isMounted, setIsMounted] = useState(false)
@@ -40,10 +41,19 @@ export default function ThankYouPage() {
           // First check if we have data in session storage
           const rankings = sessionStorage.getItem("rankings")
           const storedClinicianId = sessionStorage.getItem("clinicianId")
+          const supabaseSaveStatus = sessionStorage.getItem("supabaseSaveStatus")
 
           if (rankings) {
             setHasLocalData(true)
             calculateResults(rankings)
+            
+            // Check if we have a status about the Supabase save operation
+            if (supabaseSaveStatus === "failed") {
+              setSaveToSupabaseFailed(true)
+            } else {
+              setSaveToSupabaseFailed(false)
+            }
+            
             if (storedClinicianId) {
               setClinicianId(storedClinicianId)
             }
@@ -348,7 +358,8 @@ export default function ThankYouPage() {
             </div>
           )}
 
-          {hasLocalData && (
+          {/* Only show the warning and download option if Supabase save failed */}
+          {hasLocalData && saveToSupabaseFailed && (
             <div className="mt-6 p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-900">
               <p className="text-yellow-800 dark:text-yellow-300">
                 It seems your data might not have been saved to our database. You can download your results as a CSV
@@ -374,7 +385,8 @@ export default function ThankYouPage() {
           )}
         </CardContent>
         <CardFooter className="justify-center flex-col gap-2">
-          {hasLocalData && (
+          {/* Only show download button if Supabase save failed */}
+          {hasLocalData && saveToSupabaseFailed && (
             <Button onClick={handleDownloadData} className="w-full mb-2">
               <Download className="mr-2 h-4 w-4" />
               Download Your Results
