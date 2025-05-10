@@ -251,10 +251,10 @@ export default function TestPage() {
         }
       }
 
-      // Clear session storage after successful submission
+      // IMPORTANT: Don't clear session storage after successful submission
+      // This allows the thank you page to still show results
       if (typeof window !== "undefined") {
-        sessionStorage.removeItem("rankings")
-        sessionStorage.removeItem("modelSequences")
+        // Only clear the error flag and visited flag
         sessionStorage.removeItem("supabaseError")
         sessionStorage.removeItem("visitedTestPage")
       }

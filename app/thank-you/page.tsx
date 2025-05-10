@@ -6,14 +6,14 @@ import { CheckCircle, Download, Mail, Trophy, Medal } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { formatRankingsForExport, createCSV, downloadCSV } from "@/lib/export-utils"
-import { Badge } from "@/components/ui/badge"
+import { createClient } from "@/lib/supabase-client"
 
 // Define full model names with abbreviations
 const MODEL_FULL_NAMES: Record<string, string> = {
   DDPM: "Denoising Diffusion Probabilistic Model",
-  VQGAN: "Vector-Quantized Generative Adversarial Network",
-  UNET: "U-Net Architecture",
-  Pix2Pix: "Pix2Pix GAN",
+  VQGAN: "Vector-Quantized GAN",
+  UNET: "U-Net",
+  Pix2Pix: "Pix2Pix",
   BBDM: "Brownian-Bridge Diffusion Model",
 }
 
@@ -28,26 +28,109 @@ export default function ThankYouPage() {
   const [modelRankings, setModelRankings] = useState<ModelRanking[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [isMounted, setIsMounted] = useState(false)
+  const [clinicianId, setClinicianId] = useState<string | null>(null)
 
   useEffect(() => {
     setIsMounted(true)
 
-    // Only access sessionStorage on the client side
-    if (typeof window !== "undefined") {
-      try {
-        // Check if there's any data in session storage
-        const rankings = sessionStorage.getItem("rankings")
-        if (rankings) {
-          setHasLocalData(true)
-          calculateResults(rankings)
+    const fetchData = async () => {
+      // Only access browser APIs on the client side
+      if (typeof window !== "undefined") {
+        try {
+          // First check if we have data in session storage
+          const rankings = sessionStorage.getItem("rankings")
+          const storedClinicianId = sessionStorage.getItem("clinicianId")
+
+          if (rankings) {
+            setHasLocalData(true)
+            calculateResults(rankings)
+            if (storedClinicianId) {
+              setClinicianId(storedClinicianId)
+            }
+          } else if (storedClinicianId) {
+            // If no rankings in session storage but we have clinician ID,
+            // try to fetch from Supabase
+            setClinicianId(storedClinicianId)
+            await fetchResultsFromSupabase(storedClinicianId)
+          }
+        } catch (error) {
+          console.error("Error accessing data:", error)
+        } finally {
+          setIsLoading(false)
         }
-      } catch (error) {
-        console.error("Error accessing session storage:", error)
       }
     }
 
-    setIsLoading(false)
+    fetchData()
   }, [])
+
+  // Fetch results from Supabase if session storage was cleared
+  const fetchResultsFromSupabase = async (id: string) => {
+    try {
+      const supabase = createClient()
+
+      // Fetch rankings for this clinician
+      const { data: rankingsData, error: rankingsError } = await supabase
+        .from("rankings")
+        .select("*")
+        .eq("clinician_id", id)
+
+      if (rankingsError) {
+        console.error("Error fetching rankings from Supabase:", rankingsError)
+        return
+      }
+
+      if (rankingsData && rankingsData.length > 0) {
+        // Convert the data to the format our calculateResults function expects
+        const formattedRankings: Record<number, string[]> = {}
+
+        rankingsData.forEach((ranking) => {
+          formattedRankings[ranking.image_id] = ranking.model_rankings
+        })
+
+        // Calculate results from the fetched data
+        calculateResultsFromSupabase(formattedRankings)
+      }
+    } catch (error) {
+      console.error("Error in fetchResultsFromSupabase:", error)
+    }
+  }
+
+  // Calculate results from Supabase data
+  const calculateResultsFromSupabase = (rankings: Record<number, string[]>) => {
+    try {
+      const models = ["DDPM", "VQGAN", "UNET", "Pix2Pix", "BBDM"]
+
+      // Initialize model stats
+      const modelStats: Record<string, { totalRank: number; count: number }> = {}
+      models.forEach((model) => {
+        modelStats[model] = { totalRank: 0, count: 0 }
+      })
+
+      // Calculate total rankings for each model
+      Object.values(rankings).forEach((modelOrder) => {
+        modelOrder.forEach((model, index) => {
+          if (modelStats[model]) {
+            // Add rank position (0-indexed, so add 1)
+            modelStats[model].totalRank += index + 1
+            modelStats[model].count += 1
+          }
+        })
+      })
+
+      // Calculate average rank for each model
+      const results = models.map((model) => ({
+        model,
+        averageRank: modelStats[model].count > 0 ? modelStats[model].totalRank / modelStats[model].count : 0,
+        count: modelStats[model].count,
+      }))
+
+      // Sort by average rank (lower is better)
+      setModelRankings(results.sort((a, b) => a.averageRank - b.averageRank))
+    } catch (error) {
+      console.error("Error calculating results from Supabase:", error)
+    }
+  }
 
   const calculateResults = (rankingsJson: string) => {
     try {
@@ -92,9 +175,9 @@ export default function ThankYouPage() {
       // Get data from session storage
       const rankings = sessionStorage.getItem("rankings")
       const modelSequences = sessionStorage.getItem("modelSequences")
-      const clinicianId = sessionStorage.getItem("clinicianId")
+      const storedClinicianId = sessionStorage.getItem("clinicianId")
 
-      if (!rankings || !clinicianId) {
+      if (!rankings || !storedClinicianId) {
         console.error("Missing required data in session storage")
         return
       }
@@ -105,7 +188,7 @@ export default function ThankYouPage() {
 
       // Get clinician data
       const clinicianData = {
-        id: clinicianId,
+        id: storedClinicianId,
         name: sessionStorage.getItem("clinicianName") || "Anonymous",
         institution: sessionStorage.getItem("clinicianInstitution") || "Not specified",
         experience: sessionStorage.getItem("clinicianExperience") || "unknown",
@@ -113,7 +196,12 @@ export default function ThankYouPage() {
       }
 
       // Format the data for export - combine clinician and ranking data
-      const formattedData = formatRankingsForExport(parsedRankings, parsedModelSequences, clinicianId, clinicianData)
+      const formattedData = formatRankingsForExport(
+        parsedRankings,
+        parsedModelSequences,
+        storedClinicianId,
+        clinicianData,
+      )
 
       // Define headers for the combined CSV
       const headers = [
@@ -130,7 +218,7 @@ export default function ThankYouPage() {
 
       // Create and download the CSV
       const csvContent = createCSV(headers, formattedData)
-      downloadCSV(csvContent, `oct_evaluation_results_${clinicianId}`)
+      downloadCSV(csvContent, `oct_evaluation_results_${storedClinicianId}`)
     } catch (error) {
       console.error("Error downloading data:", error)
     }
@@ -192,7 +280,11 @@ export default function ThankYouPage() {
           </p>
 
           {/* Results Summary - Always show if we have rankings */}
-          {!isLoading && modelRankings.length > 0 ? (
+          {isLoading ? (
+            <div className="mt-8 bg-gray-50 p-4 rounded-lg border border-gray-200">
+              <p className="text-sm text-muted-foreground">Loading your results...</p>
+            </div>
+          ) : modelRankings.length > 0 ? (
             <div className="mt-8 bg-gray-50 p-4 rounded-lg border border-gray-200">
               <h3 className="text-lg font-medium mb-2">Your Evaluation Results</h3>
               <p className="text-sm text-muted-foreground mb-4">
@@ -211,10 +303,8 @@ export default function ThankYouPage() {
                       <div className="p-3 flex justify-between items-center border-b border-gray-100">
                         <div className="font-medium flex items-center">
                           <span className="mr-2">{index + 1}.</span>
-                          <span>{model.model}</span>
-                          <Badge variant="outline" className="ml-2 text-xs">
-                            {MODEL_FULL_NAMES[model.model]}
-                          </Badge>
+                          {/* Show only the full model name */}
+                          <span>{MODEL_FULL_NAMES[model.model]}</span>
                         </div>
                         <div className={`font-bold text-lg ${getTextColor(model.averageRank)}`}>
                           {model.averageRank.toFixed(2)}
@@ -246,14 +336,14 @@ export default function ThankYouPage() {
               </div>
 
               <div className="text-sm text-muted-foreground mt-4 text-center">
-                <p>Based on your {modelRankings[0].count} evaluations</p>
+                <p>Based on your evaluations</p>
                 <p className="mt-1 font-medium">Lower rank numbers indicate better performance</p>
               </div>
             </div>
           ) : (
             <div className="mt-8 bg-gray-50 p-4 rounded-lg border border-gray-200">
               <p className="text-sm text-muted-foreground">
-                No evaluation data found. If you completed the evaluation, this might be due to a technical issue.
+                We couldn't retrieve your evaluation results. This might be due to a technical issue.
               </p>
             </div>
           )}
