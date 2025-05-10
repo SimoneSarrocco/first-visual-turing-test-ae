@@ -81,13 +81,13 @@ export default function InstructionsPage() {
                 <div className="relative group">
                   <div className="relative w-full" style={{ aspectRatio: "768/496", height: "200px" }}>
                     <Image
-                      src="https://ykpapaa0p8nihfde.public.blob.vercel-storage.com/inputs/1.jpg"
+                      src="https://cdn.jsdelivr.net/gh/SimoneSarrocco/images-oct@main/inputs/1.jpg"
                       alt="Example of a low-quality OCT image"
                       fill
                       className="object-contain"
                       onDoubleClick={() =>
                         handleViewImage(
-                          "https://ykpapaa0p8nihfde.public.blob.vercel-storage.com/inputs/1.jpg",
+                          "https://cdn.jsdelivr.net/gh/SimoneSarrocco/images-oct@main/inputs/1.jpg",
                           "Example of a low-quality OCT image",
                         )
                       }
@@ -99,7 +99,7 @@ export default function InstructionsPage() {
                     className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity h-8 w-8 bg-black/50 hover:bg-black/70"
                     onClick={() =>
                       handleViewImage(
-                        "https://ykpapaa0p8nihfde.public.blob.vercel-storage.com/inputs/1.jpg",
+                        "https://cdn.jsdelivr.net/gh/SimoneSarrocco/images-oct@main/inputs/1.jpg",
                         "Example of a low-quality OCT image",
                       )
                     }
@@ -113,13 +113,13 @@ export default function InstructionsPage() {
                 <div className="relative group">
                   <div className="relative w-full" style={{ aspectRatio: "768/496", height: "200px" }}>
                     <Image
-                      src="https://ykpapaa0p8nihfde.public.blob.vercel-storage.com/DDPM/output_1.png"
+                      src="https://cdn.jsdelivr.net/gh/SimoneSarrocco/images-oct@main/DDPM/output_1.png"
                       alt="Example of an enhanced OCT image"
                       fill
                       className="object-contain"
                       onDoubleClick={() =>
                         handleViewImage(
-                          "https://ykpapaa0p8nihfde.public.blob.vercel-storage.com/DDPM/output_1.png",
+                          "https://cdn.jsdelivr.net/gh/SimoneSarrocco/images-oct@main/DDPM/output_1.png",
                           "Example of an enhanced OCT image",
                         )
                       }
@@ -131,7 +131,7 @@ export default function InstructionsPage() {
                     className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity h-8 w-8 bg-black/50 hover:bg-black/70"
                     onClick={() =>
                       handleViewImage(
-                        "https://ykpapaa0p8nihfde.public.blob.vercel-storage.com/DDPM/output_1.png",
+                        "https://cdn.jsdelivr.net/gh/SimoneSarrocco/images-oct@main/DDPM/output_1.png",
                         "Example of an enhanced OCT image",
                       )
                     }

@@ -66,7 +66,7 @@ const ModelImage = ({ model, imageNumber, index, rank, onRankChange, onViewFullS
       <div className="relative group">
         <div className="relative w-full" style={{ aspectRatio: "768/496" }}>
           <Image
-            src={`https://ykpapaa0p8nihfde.public.blob.vercel-storage.com/${model}/${filename}`}
+            src={`https://cdn.jsdelivr.net/gh/SimoneSarrocco/images-oct@main/${model}/${filename}`}
             alt={`Enhanced Vitreous OCT Image ${String.fromCharCode(65 + index)}`}
             fill
             className="object-contain"
@@ -151,7 +151,7 @@ export function ImageRanking({ inputImage, models, onSubmit, initialRanking }: I
   const handleViewFullSize = (model: string, index: number) => {
     const filename = getImageFilename(model, inputImage)
     setViewingImage({
-      src: `https://ykpapaa0p8nihfde.public.blob.vercel-storage.com/${model}/${filename}`,
+      src: `https://cdn.jsdelivr.net/gh/SimoneSarrocco/images-oct@main/${model}/${filename}`,
       alt: `Enhanced Vitreous OCT Image ${String.fromCharCode(65 + index)}`,
     })
   }

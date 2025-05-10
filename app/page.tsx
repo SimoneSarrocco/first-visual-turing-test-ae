@@ -31,7 +31,7 @@ export default function Home() {
               {/* Slightly bigger example image */}
               <div className="relative" style={{ width: "350px", height: "225px" }}>
                 <Image
-                  src="https://ykpapaa0p8nihfde.public.blob.vercel-storage.com/inputs/1.jpg"
+                  src="https://cdn.jsdelivr.net/gh/SimoneSarrocco/images-oct@main/inputs/1.jpg"
                   alt="Example of a low-quality vitreous OCT image"
                   fill
                   className="object-contain"

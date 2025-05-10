@@ -69,7 +69,7 @@ export default function PracticePage() {
               <div className="relative group bg-white border border-gray-200 rounded-md overflow-hidden">
                 <div className="relative w-full max-w-3xl mx-auto" style={{ aspectRatio: "768/496", height: "200px" }}>
                   <Image
-                    src={`https://ykpapaa0p8nihfde.public.blob.vercel-storage.com/inputs/${practiceImage}.jpg`}
+                    src={`https://cdn.jsdelivr.net/gh/SimoneSarrocco/images-oct@main/inputs/${practiceImage}.jpg`}
                     alt="Practice input OCT image"
                     fill
                     className="object-contain"
@@ -126,7 +126,7 @@ export default function PracticePage() {
 
       {viewingInputImage && (
         <ImageViewer
-          src={`https://ykpapaa0p8nihfde.public.blob.vercel-storage.com/inputs/${practiceImage}.jpg`}
+          src={`https://cdn.jsdelivr.net/gh/SimoneSarrocco/images-oct@main/inputs/${practiceImage}.jpg`}
           alt="Practice input OCT image (full size)"
           isOpen={viewingInputImage}
           onClose={() => setViewingInputImage(false)}

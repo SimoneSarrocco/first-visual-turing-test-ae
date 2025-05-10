@@ -378,7 +378,7 @@ export default function TestPage() {
                 <div className="relative w-full max-w-3xl mx-auto" style={{ aspectRatio: "768/496", height: "200px" }}>
                   {currentImage && (
                     <Image
-                      src={`https://ykpapaa0p8nihfde.public.blob.vercel-storage.com/inputs/${currentImage}.jpg`}
+                      src={`https://cdn.jsdelivr.net/gh/SimoneSarrocco/images-oct@main/inputs/${currentImage}.jpg`}
                       alt={`Input OCT image ${currentImage}`}
                       fill
                       className="object-contain"
@@ -475,7 +475,7 @@ export default function TestPage() {
 
       {currentImage && (
         <ImageViewer
-          src={`https://ykpapaa0p8nihfde.public.blob.vercel-storage.com/inputs/${currentImage}.jpg`}
+          src={`https://cdn.jsdelivr.net/gh/SimoneSarrocco/images-oct@main/inputs/${currentImage}.jpg`}
           alt={`Input OCT image ${currentImage} (full size)`}
           isOpen={viewingInputImage}
           onClose={() => setViewingInputImage(false)}

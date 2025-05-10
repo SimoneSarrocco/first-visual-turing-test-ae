@@ -146,7 +146,7 @@ const SortableImage = ({
       <div className="relative bg-white">
         <div className="relative w-full image-container" style={{ aspectRatio: "768/496" }}>
           <Image
-            src={`https://ykpapaa0p8nihfde.public.blob.vercel-storage.com/${model}/${filename}`}
+            src={`https://cdn.jsdelivr.net/gh/SimoneSarrocco/images-oct@main/${model}/${filename}`}
             alt={`Enhanced Vitreous OCT Image ${imageLabel}`}
             fill
             className="object-contain"
@@ -278,7 +278,7 @@ export function DragDropRanking({ inputImage, models, onSubmit, initialRanking }
   const handleViewFullSize = (model: string, index: number) => {
     const filename = getImageFilename(model, inputImage)
     setViewingImage({
-      src: `https://ykpapaa0p8nihfde.public.blob.vercel-storage.com/${model}/${filename}`,
+      src: `https://cdn.jsdelivr.net/gh/SimoneSarrocco/images-oct@main/${model}/${filename}`,
       alt: `Enhanced Vitreous OCT Image ${imageLabels[model]}`,
     })
   }
